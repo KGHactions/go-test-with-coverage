@@ -18,23 +18,28 @@ runs:
 
     - name: resolve dependencies
       run: go get -v -t -d ./...
+      shell: bash
     - name: test
       run: go test -v -coverprofile=cover.out .
+      shell: bash
 
     - name: install coverage tools
       run: |
         go install github.com/axw/gocov/gocov@v1.1.0
         go install github.com/matm/gocov-html/cmd/gocov-html@v1.4.0
         pip install anybadge==1.14.0
+      shell: bash
 
     - run: echo "COV_OUT=coverage/${{ github.event_name == 'push' && github.ref_name || github.event.number }}" >> $GITHUB_ENV
-
+      shell: bash
     - name: generate coverage report
       run: |
         mkdir -p "${{ env.COV_OUT }}"
         gocov convert cover.out | gocov-html > "${{ env.COV_OUT }}/index.html"
+      shell: bash
     - name: generate badge
       run: anybadge -v $(go tool cover -func cover.out | awk 'END{print substr($3,1,length($3)-1)}') -f "${{ env.COV_OUT }}/badge.svg" coverage
+      shell: bash
     - name: deploy coverage artifacts
       uses: JamesIves/github-pages-deploy-action@v4
       with:
