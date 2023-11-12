@@ -1,9 +1,9 @@
 name: "go test with coverage"
-description: ""
+description: "Run unit tests for a Go project then generate coverage report and badge."
 
 inputs:
   go-version:
-    description: ""
+    description: "The Go version to download (if necessary) and use. Supports semver spec and ranges. Be sure to enclose this option in single quotation marks."
     required: true
 
 runs:
@@ -11,8 +11,6 @@ runs:
 
   steps:
     - uses: actions/checkout@v4
-    - run: echo "${{ inputs.go-version }}"
-      shell: bash
     - name: setup Go
       uses: actions/setup-go@v4
       with:
