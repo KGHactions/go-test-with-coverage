@@ -1,0 +1,43 @@
+name: "go test with coverage"
+description: ""
+
+inputs:
+  go-version:
+    description: ""
+    required: true
+
+runs:
+  using: "composite"
+
+  env:
+    COV_OUT: "coverage/${{ github.event_name == 'push' && github.ref_name || github.event.number }}"
+
+  steps:
+    - uses: actions/checkout@v4
+    - name: setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
+
+    - name: resolve dependencies
+      run: go get -v -t -d ./...
+    - name: test
+      run: go test -v -coverprofile=cover.out .
+
+    - name: install coverage tools
+      run: |
+        go install github.com/axw/gocov/gocov@v1.1.0
+        go install github.com/matm/gocov-html/cmd/gocov-html@v1.4.0
+        pip install anybadge==1.14.0
+
+    - name: generate coverage report
+      run: |
+        mkdir -p "$COV_OUT/"
+        gocov convert cover.out | gocov-html > "$COV_OUT/index.html"
+    - name: generate badge
+      run: anybadge -v $(go tool cover -func cover.out | awk 'END{print substr($3,1,length($3)-1)}') -f "$COV_OUT/badge.svg" coverage
+    - name: deploy coverage artifacts
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: coverage/
+        clean: false
