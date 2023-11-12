@@ -11,6 +11,8 @@ runs:
 
   steps:
     - uses: actions/checkout@v4
+    - run: echo "${{ inputs.go-version }}"
+      shell: bash
     - name: setup Go
       uses: actions/setup-go@v4
       with:
