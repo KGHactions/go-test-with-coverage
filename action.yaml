@@ -9,9 +9,6 @@ inputs:
 runs:
   using: "composite"
 
-  env:
-    COV_OUT: "coverage/${{ github.event_name == 'push' && github.ref_name || github.event.number }}"
-
   steps:
     - uses: actions/checkout@v4
     - name: setup Go
@@ -30,12 +27,14 @@ runs:
         go install github.com/matm/gocov-html/cmd/gocov-html@v1.4.0
         pip install anybadge==1.14.0
 
+    - run: echo "COV_OUT=coverage/${{ github.event_name == 'push' && github.ref_name || github.event.number }}" >> $GITHUB_ENV
+
     - name: generate coverage report
       run: |
-        mkdir -p "$COV_OUT/"
-        gocov convert cover.out | gocov-html > "$COV_OUT/index.html"
+        mkdir -p "${{ env.COV_OUT }}"
+        gocov convert cover.out | gocov-html > "${{ env.COV_OUT }}/index.html"
     - name: generate badge
-      run: anybadge -v $(go tool cover -func cover.out | awk 'END{print substr($3,1,length($3)-1)}') -f "$COV_OUT/badge.svg" coverage
+      run: anybadge -v $(go tool cover -func cover.out | awk 'END{print substr($3,1,length($3)-1)}') -f "${{ env.COV_OUT }}/badge.svg" coverage
     - name: deploy coverage artifacts
       uses: JamesIves/github-pages-deploy-action@v4
       with:
