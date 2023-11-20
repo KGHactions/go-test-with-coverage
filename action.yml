@@ -5,6 +5,14 @@ inputs:
   go-version:
     description: "The Go version to download (if necessary) and use. Supports semver spec and ranges. Be sure to enclose this option in single quotation marks."
     required: true
+  deploy:
+    description: "Deploy a new coverage report to GitHub pages."
+    default: true
+    required: false
+  deploy-per-go-version:
+    description: "Deploy coverage report in a subdirectory with Go version as name."
+    default: false
+    required: false
 
 runs:
   using: "composite"
@@ -30,7 +38,7 @@ runs:
         pip install anybadge==1.14.0
       shell: bash
 
-    - run: echo "COV_OUT=coverage/${{ github.event_name == 'push' && github.ref_name || github.event.number }}" >> $GITHUB_ENV
+    - run: echo "COV_OUT=coverage/${{ github.event_name == 'push' && github.ref_name || github.event.number }}/${{ inputs.deploy-per-go-version && inputs.go-version || '' }}" >> $GITHUB_ENV
       shell: bash
     - name: generate coverage report
       run: |
@@ -45,3 +53,4 @@ runs:
       with:
         folder: coverage/
         clean: false
+      if: ${{ inputs.deploy }}
